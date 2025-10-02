@@ -1,9 +1,13 @@
 package com.bank.BankingSystem.entity;
 
 import com.bank.BankingSystem.config.base.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Builder
@@ -22,19 +26,13 @@ public class Users extends BaseEntity {
     private String username;
     private String password;
     private String phoneNumber;
-    private Boolean active;
+    private Boolean active = true;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = true)
     private Role role;
 
-    public Users(Long id, String firstName, String lastName, String email, String username, String password, String phoneNumber, Role role) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.username = username;
-        this.password = password;
-        this.phoneNumber = phoneNumber;
-        this.role = role;
-    }
+    // One user can have many accounts
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Account> accounts;
 }

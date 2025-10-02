@@ -1,15 +1,17 @@
 package com.bank.BankingSystem.exception;
-
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-public class ErrorException {
+@Builder
+public class ErrorException extends RuntimeException {
+
   private int code;
   private String message;
 }

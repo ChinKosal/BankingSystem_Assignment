@@ -5,6 +5,7 @@ import com.bank.BankingSystem.dto.auth.LoginRequest;
 import com.bank.BankingSystem.dto.auth.RegisterRequest;
 import com.bank.BankingSystem.entity.Role;
 import com.bank.BankingSystem.entity.Users;
+import com.bank.BankingSystem.exception.ErrorException;
 import com.bank.BankingSystem.payload.User.UserPrinciple;
 import com.bank.BankingSystem.repository.RoleRepository;
 import com.bank.BankingSystem.repository.User.UserRepository;
@@ -53,9 +54,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public JwtAuthResponse register(RegisterRequest registerRequest) {
-        // Check if email already exists
-        if (userRepository.findByEmail(registerRequest.getEmail()) != null) {
-            throw new RuntimeException("Email is already taken");
+        Users existingUser = userRepository.findByEmail(registerRequest.getEmail());
+        if (existingUser != null) {
+            throw new ErrorException(203, "Email is already taken");
         }
 
         // Create new user
@@ -68,24 +69,14 @@ public class AuthServiceImpl implements AuthService {
         user.setPhoneNumber(registerRequest.getPhoneNumber());
         user.setActive(true);
 
-        // Assign default user role
         Role userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new RuntimeException("Default role not found"));
         user.setRole(userRole);
 
         Users savedUser = userRepository.save(user);
 
-        // Authenticate the user
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                registerRequest.getEmail(),
-                registerRequest.getPassword()
-            )
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String token = jwtTokenProvider.generateToken((UserPrinciple) authentication);
+        // Directly generate JWT without re-authenticating
+        String token = jwtTokenProvider.generateToken(UserPrinciple.build(savedUser));
 
         return JwtAuthResponse.builder()
                 .accessToken(token)
@@ -95,4 +86,5 @@ public class AuthServiceImpl implements AuthService {
                 .role(savedUser.getRole() != null ? savedUser.getRole().getName() : null)
                 .build();
     }
+
 }

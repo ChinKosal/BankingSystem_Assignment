@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.bank.BankingSystem.payload.BaseResponse;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import javax.naming.AuthenticationException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestControllerAdvice
@@ -74,14 +77,13 @@ public class GlobalExceptionHandlerSecurity {
                 .build();
     }
 
-//    @ExceptionHandler(Throwable.class)
-//    public BaseResponse globalExceptionHandler(Throwable ex) {
-//        return BaseResponse.builder()
-//                .message(ex.getCause().getMessage())
-//                .code("500")
-//                .isError(true)
-//                .build();
-//    }
+    @ExceptionHandler(ErrorException.class)
+    public ResponseEntity<Map<String, Object>> handleErrorException(ErrorException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", ex.getCode());
+        response.put("message", ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 
     //Json Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
